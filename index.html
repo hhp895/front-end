@@ -1,12 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
+    <style>
+        .myImg {
+            width: 400px;
+            height: 400px;
+          
+            border: 1px solid;
+        }
+
+        .myCanvas{
+            border: 1px dashed;
+        }
+    </style>
 </head>
+
 <body>
-    
+    请输入0-255的阈值: <input type="text" id="threshold" value="100" placeholder="请输入0-255的阈值"><br>
+    请选择标准图片 <input type="file" onchange="loadImg('canvas-org','org','file1')" id="file1">
+    <input type="button" value="二值化-old" onclick="binary('canvas-org','org')">
+    <br> <br>
+    <div class="org">
+        <img id="org" class="myImg" width="400px" height="400px" alt="Image preview...">
+        <canvas id="canvas-org" width="400px" height="400px"  class="myCanvas">
+            你的浏览器不支持canvas！
+        </canvas>
+    </div>
+    请选择学生作品 <input type="file" onchange="loadImg('canvas-new','img-new','file2')"id="file2">
+    <input type="button" value="二值化-new" onclick="binary('canvas-new','img-new')">
+    <div class="new">
+        <img id="img-new" class="myImg" width="400px" height="400px" alt="Image preview...">
+        <canvas id="canvas-new" class="myCanvas" width="400px" height="400px">
+            你的浏览器不支持canvas！
+        </canvas>
+    </div>
+      <input type="button" value="求相似值" onclick="getSimilarity()">
+    <script>
+        var c_w = 400;
+        var c_h = 400;
+        function binary(canvasId,mImg) {
+            var threshold = document.getElementById('threshold').value;
+            console.log(threshold);
+            var c = document.getElementById(canvasId);
+            var ctx = c.getContext('2d');
+            var img = document.getElementById(mImg);
+
+            ctx.drawImage(img, 0, 0, c_w, c_h);
+
+            var imgData = ctx.getImageData(0, 0, c_w, c_h);
+            for (var i = 0; i < imgData.data.length; i += 4) {
+                var R = imgData.data[i];
+                var G = imgData.data[i + 1];
+                var B = imgData.data[i + 2];
+                var Alpha = imgData.data[i + 3];
+                var sum = (R + G + B) / 3;
+                if (sum > threshold) {
+                    imgData.data[i] = 255;
+                    imgData.data[i + 1] = 255;
+                    imgData.data[i + 2] = 255;
+                    imgData.data[i + 3] = Alpha;
+                }
+                else {
+                    imgData.data[i] = 0;
+                    imgData.data[i + 1] = 0;
+                    imgData.data[i + 2] = 0;
+                    imgData.data[i + 3] = Alpha;
+                }
+            }
+            ctx.putImageData(imgData, 0, 0);
+        }
+        function loadImg(mCanvas,imgId,fileInput) {
+            var img = document.getElementById(imgId);
+            var file = document.getElementById(fileInput).files[0];
+            if (!/image\/\w+/.test(file.type)) {
+                alert("文件必须为图片！");
+                return false;
+            }
+            var reader = new FileReader();
+            reader.addEventListener("load", function () {
+                img.src = reader.result;
+            }, false);
+
+            if (file) {
+                reader.readAsDataURL(file);
+                loadCanvas(mCanvas,imgId);
+            }
+        }
+        function loadCanvas(mCanvas,mImg) {
+            var c = document.getElementById(mCanvas);
+            var ctx = c.getContext("2d");
+
+            var img = document.getElementById(mImg);
+            img.onload = function () {
+                ctx.drawImage(img, 0, 0, c_w, c_h);
+            }
+        }
+    </script>
 </body>
+
 </html>
