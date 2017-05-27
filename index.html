@@ -10,28 +10,28 @@
         .myImg {
             width: 400px;
             height: 400px;
-          
+
             border: 1px solid;
         }
 
-        .myCanvas{
+        .myCanvas {
             border: 1px dashed;
         }
     </style>
 </head>
 
 <body>
-    请输入0-255的阈值: <input type="text" id="threshold" value="100" placeholder="请输入0-255的阈值"><br>
-    请选择标准图片 <input type="file" onchange="loadImg('canvas-org','org','file1')" id="file1">
+    请输入0-255的阈值: <input type="text" id="threshold" value="100" placeholder="请输入0-255的阈值"><br> 请选择标准图片 <input type="file"
+        onchange="loadImg('canvas-org','org','file1')" id="file1">
     <input type="button" value="二值化-old" onclick="binary('canvas-org','org')">
     <br> <br>
     <div class="org">
         <img id="org" class="myImg" width="400px" height="400px" alt="Image preview...">
-        <canvas id="canvas-org" width="400px" height="400px"  class="myCanvas">
+        <canvas id="canvas-org" width="400px" height="400px" class="myCanvas">
             你的浏览器不支持canvas！
         </canvas>
     </div>
-    请选择学生作品 <input type="file" onchange="loadImg('canvas-new','img-new','file2')"id="file2">
+    请选择学生作品 <input type="file" onchange="loadImg('canvas-new','img-new','file2')" id="file2">
     <input type="button" value="二值化-new" onclick="binary('canvas-new','img-new')">
     <div class="new">
         <img id="img-new" class="myImg" width="400px" height="400px" alt="Image preview...">
@@ -39,11 +39,11 @@
             你的浏览器不支持canvas！
         </canvas>
     </div>
-      <input type="button" value="求相似值" onclick="getSimilarity()">
+    <input type="button" value="求相似值" onclick="getSimilarity()">
     <script>
         var c_w = 400;
         var c_h = 400;
-        function binary(canvasId,mImg) {
+        function binary(canvasId, mImg) {
             var threshold = document.getElementById('threshold').value;
             console.log(threshold);
             var c = document.getElementById(canvasId);
@@ -74,7 +74,7 @@
             }
             ctx.putImageData(imgData, 0, 0);
         }
-        function loadImg(mCanvas,imgId,fileInput) {
+        function loadImg(mCanvas, imgId, fileInput) {
             var img = document.getElementById(imgId);
             var file = document.getElementById(fileInput).files[0];
             if (!/image\/\w+/.test(file.type)) {
@@ -88,10 +88,10 @@
 
             if (file) {
                 reader.readAsDataURL(file);
-                loadCanvas(mCanvas,imgId);
+                loadCanvas(mCanvas, imgId);
             }
         }
-        function loadCanvas(mCanvas,mImg) {
+        function loadCanvas(mCanvas, mImg) {
             var c = document.getElementById(mCanvas);
             var ctx = c.getContext("2d");
 
@@ -99,6 +99,47 @@
             img.onload = function () {
                 ctx.drawImage(img, 0, 0, c_w, c_h);
             }
+        }
+
+        function compareImage(imgData1, imgData2) {
+            var blackCount1 = 0;
+            var blackCount2 = 0;
+            var similarCount = 0;
+            for (var i = 0; i < imgData1.data.length; i += 4) {
+                var R1 = imgData1.data[i];
+                var G1 = imgData1.data[i + 1];
+                var B1 = imgData1.data[i + 2];
+                var Alpha1 = imgData1.data[i + 3];
+
+                var R2 = imgData2.data[i];
+                var G2 = imgData2.data[i + 1];
+                var B2 = imgData2.data[i + 2];
+                var Alpha2 = imgData2.data[i + 3];
+
+                if (R1 == 0) {
+                    blackCount1++;
+                }
+                if (R2 == 0) {
+                    blackCount2++;
+                }
+                if (R1 == 0 && R2 == 0) {
+                    similarCount++;
+                }
+            }
+            var perTotal = blackCount1 > blackCount2 ? blackCount2 * 1.0 / blackCount1 : blackCount1 * 1.0 / blackCount2;
+            var per = similarCount * 1.0 / blackCount2;
+            var result = per * perTotal;
+            alert("result:" + result * 100 + "%");
+        }
+        function getImageData(mCanvas) {
+            var c = document.getElementById(mCanvas);
+            var ctx = c.getContext('2d');
+            return ctx.getImageData(0, 0, c_w, c_h);
+        }
+        function getSimilarity() {
+            var imageData1 = getImageData('canvas-org');
+            var imageData2 = getImageData('canvas-new');
+            compareImage(imageData1,imageData2);
         }
     </script>
 </body>
